@@ -61,11 +61,11 @@ class LazyProperty(property):
     def get_cache(self, obj: Any) -> LazyPropertyCache:
         """Get the cache in obj. If there isn't, it's created"""
         try:
-            cache = getattr(obj, self.cache_name)
-        except AttributeError:  # va creata
+            return getattr(obj, self.cache_name)
+        except AttributeError:  # need creation
             cache = self.LazyPropertyCache(self.requirements, {"self": obj})
             setattr(obj, self.cache_name, cache)
-        return cache
+            return cache
 
 
     def __get__(self, obj: Any, type: Optional[type] = None) -> Any:
