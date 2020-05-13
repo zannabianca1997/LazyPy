@@ -9,7 +9,7 @@ class Requirable(Invalidable):
     __slots__ = []
 
     def _require(self) -> bool:
-        """require this object"""
+        """Require this object"""
         return True
 
     def require(self, call_on_next_invalidate: Callable[["Requirable", Any], None]) -> bool:
@@ -19,10 +19,11 @@ class Requirable(Invalidable):
         self.next_invalidate += lambda sender, cause: call_on_next_invalidate(self, cause)
         return True
 
-    def permanent_require(self, call_on_every_invalidate: Callable[["Requirable", Any], None]) -> bool:
+    def permanent_require(self, call_on_every_invalidate: Optional[Callable[["Requirable", Any], None]] = None) -> bool:
         if not self._require():
             return False
-        self.has_invalidated += lambda sender, cause: call_on_every_invalidate(self, cause)
+        if call_on_every_invalidate is not None:
+            self.has_invalidated += lambda sender, cause: call_on_every_invalidate(self, cause)
         return True
 
 
@@ -81,9 +82,17 @@ class Requirer(Validable, Requirable):
         # siamo riusciti a richiederli tutti...
         return super(Requirer, self)._validate()
 
-    def require(self, call_on_next_invalidate: Callable[["Requirable", Any, Any], None]) -> bool:
+    def _require(self) -> bool:
         """Try to validate before require itself"""
-        if self.validate(): #try to validate
-            return super().require(call_on_next_invalidate)
+        if self.validate():  # try to validate
+            return super()._require()
         return False  # failed to validate
+
+    def permanent_require(self, call_on_every_invalidate: Optional[Callable[["Requirable", Any], None]] = None
+                          , call_on_every_validate: Optional[Callable[["Requirable", Any], None]] = None) -> bool:
+        if not super().permanent_require(call_on_every_invalidate=call_on_every_invalidate):
+            return False
+        if call_on_every_validate is not None:
+            self.has_validated += lambda sender, cause: call_on_every_validate(self, cause)
+        return True
 

@@ -40,6 +40,7 @@ class Validable(Invalidable):
         return True
 
     def _invalidate(self, cause: Cause) -> None:
+        """invalidate the object"""
         self._valid = False
         super().invalidate(cause)
 
