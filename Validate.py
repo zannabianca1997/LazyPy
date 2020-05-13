@@ -13,9 +13,13 @@ class Invalidable:
         self.next_invalidate = CleaningEvent()
         self.has_invalidated += self.next_invalidate  # when it invalidate, call (and clear) next_invalidate
 
-    def invalidate(self, cause: Cause):
+    def _invalidate(self, cause: Cause):
         """Invalidate the object"""
         self.has_invalidated(self, cause)
+
+    def invalidate(self, cause: Cause):
+        """Invalidate the object"""
+        self._invalidate(cause)
 
 
 class Validable(Invalidable):
@@ -40,14 +44,13 @@ class Validable(Invalidable):
         return True
 
     def _invalidate(self, cause: Cause) -> None:
-        """invalidate the object"""
         self._valid = False
-        super().invalidate(cause)
+        super()._invalidate(cause)
 
     def invalidate(self, cause: Cause) -> None:
         """Invalidate the object only if it is valid"""
         if self.valid:
-            self._invalidate(cause)
+            super().invalidate(cause)
 
     @property
     def valid(self):

@@ -12,16 +12,13 @@ class Requirable(Invalidable):
         """Require this object"""
         return True
 
-    def require(self, call_on_next_invalidate: Callable[["Requirable", Any], None]) -> bool:
+    def require(self, call_on_next_invalidate: Optional[Callable[["Requirable", Any], None]] = None,
+                call_on_every_invalidate: Optional[Callable[["Requirable", Any], None]] = None) -> bool:
         """Require this object. When the object change next the callback will be called"""
         if not self._require():
             return False
-        self.next_invalidate += lambda sender, cause: call_on_next_invalidate(self, cause)
-        return True
-
-    def permanent_require(self, call_on_every_invalidate: Optional[Callable[["Requirable", Any], None]] = None) -> bool:
-        if not self._require():
-            return False
+        if call_on_next_invalidate is not None:
+            self.next_invalidate += lambda sender, cause: call_on_next_invalidate(self, cause)
         if call_on_every_invalidate is not None:
             self.has_invalidated += lambda sender, cause: call_on_every_invalidate(self, cause)
         return True
@@ -88,9 +85,11 @@ class Requirer(Validable, Requirable):
             return super()._require()
         return False  # failed to validate
 
-    def permanent_require(self, call_on_every_invalidate: Optional[Callable[["Requirable", Any], None]] = None
-                          , call_on_every_validate: Optional[Callable[["Requirable", Any], None]] = None) -> bool:
-        if not super().permanent_require(call_on_every_invalidate=call_on_every_invalidate):
+    def require(self, call_on_next_invalidate: Optional[Callable[["Requirable", Any], None]] = None,
+                call_on_every_invalidate: Optional[Callable[["Requirable", Any], None]] = None,
+                call_on_every_validate: Optional[Callable[["Requirable", Any], None]] = None) -> bool:
+        if not super().require(call_on_next_invalidate=call_on_next_invalidate,
+                               call_on_every_invalidate=call_on_every_invalidate):
             return False
         if call_on_every_validate is not None:
             self.has_validated += lambda sender, cause: call_on_every_validate(self, cause)

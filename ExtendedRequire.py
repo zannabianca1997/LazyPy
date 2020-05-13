@@ -17,7 +17,7 @@ class StrRequirer(Requirer):
         super().__init__(*abs_requirements)
         self.eval_vars = RequirableDict(eval_vars)
         # when the vars change this will be invalidated
-        self.eval_vars.permanent_require(call_on_every_invalidate=lambda sender, cause: self.invalidate(cause))
+        self.eval_vars.require(call_on_every_invalidate=lambda sender, cause: self.invalidate(cause))
 
 
     def _divide_requirements(self, requirements: Iterable[Union[Requirable, str]]) \
